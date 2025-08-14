@@ -5,7 +5,7 @@ const app = express();
 const cors = require("cors");
 const awsServerlessExpress = require("aws-serverless-express");
 
-// // app.use(cors());
+app.use(cors());
 // app.use(cors({
 //   origin: 'https://d2urr00kijskaa.cloudfront.net',
 //   methods: ['GET', 'POST', 'OPTIONS'],
@@ -329,3 +329,4 @@ exports.handler = (event, context) =>
 // });
 
 // module.exports.handler = serverless(app);
+
