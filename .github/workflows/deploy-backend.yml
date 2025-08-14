@@ -39,10 +39,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          aws lambda update-function-code `
-            --function-name travel-app-api`
-            --zip-file fileb://function.zip
+        run: aws lambda update-function-code --function-name travel-app-api --zip-file fileb://function.zip
+
 
       # Step 6: Invalidate CloudFront cache
       - name: Invalidate CloudFront
