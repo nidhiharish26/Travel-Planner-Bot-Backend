@@ -1,0 +1,56 @@
+name: Deploy Backend & Invalidate CloudFront
+
+# Trigger this workflow on push to main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-backend:
+    runs-on: windows-latest
+
+    steps:
+      # Step 1: Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.14.2'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Package Lambda
+      - name: Package Lambda function
+        run: |
+          # Remove previous zip if exists
+          if (Test-Path function.zip) { Remove-Item function.zip }
+          # Zip all files for Lambda
+          Compress-Archive -Path * -DestinationPath function.zip
+
+      # Step 5: Deploy Lambda
+      - name: Deploy Lambda
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws lambda update-function-code `
+            --function-name travel-app-api`
+            --zip-file fileb://function.zip
+
+      # Step 6: Invalidate CloudFront cache
+      - name: Invalidate CloudFront
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws cloudfront create-invalidation `
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} `
+            --paths "/*"
